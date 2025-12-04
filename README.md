@@ -1,8 +1,14 @@
-# WireGuard VPN Router (Raspberry Pi)
+# WireGuard VPN Router (Raspberry Pi) Quick Setup Guide
 
-Conventionally, I name the device `vpn-router` on the local network. I assigned the Raspberry Pi a reserved local IP of `10.0.0.2`, and configured the VPN server to reside on `10.0.2.1/32` serving the VPN subnet `10.0.2.0/24`.
+## Highlights
+- Turns a Raspberry Pi/single-board computer into a WireGuard VPN router for remote access or hub-and-spoke overlays.
+- Automates NAT/iptables, IPv4 forwarding, and port forwarding to publish a secure encrypted entry point on a home/branch network.
+- Minimal footprint, headless-friendly bootstrap script for microcontroller-class hardware you can drop at remote sites.
 
-This guide assumes the Pi is hardwired to the router over Ethernet (`eth0`). If you run it over Wi‑Fi, switch the interface in the config to `wlan0` and ensure it is connected before applying routing changes. We still assign the reserved IP manually for clarity; this only matters in the local IP routing section, which has instructions for both. 
+## Notes
+1. This work was done as part of a larger project for a startup client - this work was sanitized, generalized, and posted with thier permission. 
+2. A couple of notes about conventions: I name the device `vpn-router` on the local network. I assigned the Raspberry Pi a reserved local IP of `10.0.0.2`, and configured the VPN server to reside on `10.0.2.1/32` serving the VPN subnet `10.0.2.0/24`. This guide assumes the Pi is hardwired to the router over Ethernet (`eth0`). If you run it over Wi‑Fi, switch the interface in the config to `wlan0` and ensure it is connected before applying routing changes.
+3. Security: Never commit private keys, real endpoints, or client configs to source control. Set strict perms on configs: `chmod 600` on any key files.
 
 ## Quickstart
 
@@ -14,11 +20,6 @@ This guide assumes the Pi is hardwired to the router over Ethernet (`eth0`). If 
 6. Forward UDP port `51820` on your router to the WireGuard server IP (10.0.2.1 in this example).  
 7. Bring up the interface: `sudo wg-quick up wg0` and enable on boot: `sudo systemctl enable wg-quick@wg0`.  
 8. For each client, generate a keypair, fill `client.conf` with its keys and assigned IP, and add a matching `[Peer]` block in `wg0.conf`. See these files for additional hints in the comments. 
-
-## Security & Hygiene
-- Never commit private keys, real endpoints, or client configs to source control.
-- Set strict perms on configs: `chmod 600 /etc/wireguard/wg0.conf` and on any key files.
-- Use descriptive placeholders in shared configs (as in the sample files) when sharing this repo publicly.
 
 ## Port Forwarding on Router
 
@@ -87,4 +88,3 @@ sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 NOTE: if you opt to run over wifi, the only thing that changes is the network interface in the commmand. In this case, replace `eth0` with `wlan0`. Of course, first check that this interface is connected by runnning `ip a` or `ifconfig`.
 
 3. To confirm the wireguard server is routing the traffic correctly over the `eth0` interface, you should run `sudo tcpdump -i eth0 host 8.8.8.8` on the server, and then `ping 8.8.8.8` from a connected client device. 
-
